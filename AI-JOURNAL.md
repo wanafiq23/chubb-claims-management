@@ -152,3 +152,10 @@ Entries below are chronological. Earlier environment limitations describe those 
 - Reran backend tests with a new temporary --artifacts-path and RestoreLockedMode=true, leaving the running app untouched: **20 passed, zero failed/skipped**. Final resolved Docker Compose configuration validated successfully.
 - Earlier clean-copy **9 Chrome tests** and real Kafka publishing/outage/recovery results remain recorded as earlier executed checks; they were not represented as newly rerun in this consistency-only turn.
 - No application code, design, database, user data, dependency or Git history changes. Nothing staged, committed or pushed. Remaining documented limitations and the 16 moderate development-tool advisories are unchanged.
+
+## 2026-11-22 - Kafka startup reliability
+
+- Added a broker-local kafka-to-127.0.0.1 hosts entry for the single-broker Compose deployment so its self-resolution does not depend on Docker DNS. Other containers still reach kafka through the Compose network.
+- The Windows launcher now waits up to 180 seconds and, on the known UnknownHostException: kafka error, recreates the broker once without deleting its named volume, then continues normal topic/application startup. Other errors stop startup and show broker logs.
+- Validation: docker compose config --quiet passed; a temporary CMD harness with mocked external commands passed healthy startup, hostname-failure recovery, and unrelated-failure handling. git diff --check passed. These checks do not establish a successful live broker startup.
+- Live verification was unavailable: Docker Desktop's Linux engine was stopped, confirmed outside the sandbox. No application services, databases or Docker volumes were changed during verification.

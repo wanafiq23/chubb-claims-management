@@ -112,7 +112,7 @@ curl.exe --fail http://localhost:4200/health
 
 - Run `dotnet --list-sdks` and `node --version` to check the prerequisites. Restart CMD after installing them.
 - If Docker is unavailable, open Docker Desktop and wait for the engine. This launcher requires Docker and keeps Kafka enabled.
-- If Kafka exits with a hostname-resolution error for `kafka`, recreate its container using the recovery steps below, then rerun `.\start.cmd`.
+- The single Kafka broker has a local hostname mapping to avoid depending on Docker DNS for its own name. If startup still reports `UnknownHostException: kafka`, the launcher automatically recreates the broker once, keeps its data volume, and continues. If recovery fails, inspect the logs using the steps below.
 - If dependency installation fails, check network/proxy access to NuGet, npm and Docker Hub, then retry. Do not install frontend dependencies with `--ignore-scripts`.
 - If ports 5080, 4200 or 9092 are occupied, stop the previous instance. Existing responding services are reused; their original environment settings remain in effect. Stop a previously Kafka-disabled backend before launching again.
 - For manual demo sign-in, use `ASPNETCORE_ENVIRONMENT=Development` and enable demo authentication as shown above.
@@ -129,7 +129,7 @@ If startup fails, inspect the broker log from the folder containing `compose.yam
 docker compose logs --tail 100 kafka
 ```
 
-If the log reports that Kafka cannot resolve `kafka` (for example, `UnknownHostException: kafka`), recreate the broker container and wait for it to become healthy:
+The launcher attempts this recovery automatically once for `UnknownHostException: kafka`. For manual startup or troubleshooting after automatic recovery fails, recreate the broker container and wait for it to become healthy:
 
 ```cmd
 docker compose up -d --force-recreate --wait --wait-timeout 180 kafka
@@ -272,6 +272,6 @@ Kafka delivery is **at least once**. The single worker processes pending rows in
 | Submission documentation | `API.md`, `AI-JOURNAL.md`, `GITHUB-READINESS.md`, `COMMIT-FILES.txt` | API contract/examples, AI record, verification evidence and initial commit candidates. |
 | Git configuration | `.gitignore`, `.gitattributes` | Exclude local data/secrets/generated files and preserve suitable script line endings. |
 
-Before committing, review `git status --short --untracked-files=all` and `git add --dry-run .`. GitHub clones and ZIP downloads contain committed files only. Include the complete source, public configuration, lockfiles, scripts, tests and documentation; exclude databases, uploaded data, node_modules, build outputs, reports, private keys and local secrets. There is no configured CI workflow or published GitHub remote yet.
+Before committing, review `git status --short --untracked-files=all` and `git add --dry-run .`. GitHub clones and ZIP downloads contain committed files only. Include the complete source, public configuration, lockfiles, scripts, tests and documentation; exclude databases, uploaded data, node_modules, build outputs, reports, private keys and local secrets. The GitHub remote is [wanafiq23/chubb-claims-management](https://github.com/wanafiq23/chubb-claims-management). There is no configured CI workflow.
 
 [API reference](API.md) | [Frontend notes](frontend/README.md) | [GitHub readiness](GITHUB-READINESS.md) | [AI working journal](AI-JOURNAL.md)

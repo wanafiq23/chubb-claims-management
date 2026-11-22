@@ -9,6 +9,9 @@ services:
   kafka:
     image: apache/kafka:4.0.0
     hostname: kafka
+    # This single broker must resolve itself even if Docker DNS is unavailable.
+    extra_hosts:
+      - "kafka:127.0.0.1"
     ports:
       - "127.0.0.1:${CHUBB_KAFKA_PORT:-9092}:9092"
     depends_on:

@@ -1,6 +1,8 @@
 # CHUBB GitHub readiness report
 
-Verified on 2026-11-22. **Ready for a local Windows assessment/demo repository, with the documented limitations below.** Nothing has been committed or pushed. This is not a production deployment security certification.
+Verified on 2026-11-22. **Ready for a local Windows assessment/demo repository, with the documented limitations below.** The original verification preceded the initial Git commits. The repository now has an origin remote at https://github.com/wanafiq23/chubb-claims-management. This is not a production deployment security certification.
+
+Latest startup changes: the single broker now has a local hostname mapping, and the launcher waits up to 180 seconds and automatically recreates it once on `UnknownHostException: kafka`, preserving its data volume. Compose configuration and simulated CMD startup/recovery checks passed. Docker Desktop was stopped during this follow-up, so these latest changes have not been verified with a live broker; the live results below describe the earlier configuration.
 
 ## Reproducibility and scope of verification
 
@@ -10,7 +12,7 @@ The first copy installed npm and locked NuGet dependencies into new empty caches
 
 A second source-only copy tested the documented one-command path: **only `start.cmd`**, with no installed node_modules or generated backend files and with another pair of empty dependency caches. It automatically installed/restored dependencies, started both service windows, and passed readiness checks with a new SQLite database. This second copy reused the isolated broker already tested with a fresh volume.
 
-This verifies clean checkout/ZIP-equivalent source on the available Windows computer. It was not a remote GitHub clone or a newly installed Windows VM: no GitHub repository/remote has been configured, and the host prerequisites were already installed.
+This verifies clean checkout/ZIP-equivalent source on the available Windows computer. It was not a remote GitHub clone or a newly installed Windows VM: at verification time no GitHub repository/remote had been configured, and the host prerequisites were already installed.
 
 ## Executed results
 
@@ -100,7 +102,7 @@ Browser and Kafka smoke tests create real test records. Use a separate checkout/
 
 ## Git state and what to commit
 
-The folder initially had **no Git metadata or history**. Local Git was initialised on `main` solely to validate status and ignore rules. There are no commits, staged files or remotes, and nothing was pushed. Existing databases and any external Git history were not deleted or modified.
+The folder initially had **no Git metadata or history**. Local Git was initialised on `main` solely to validate status and ignore rules. At that verification stage there were no commits, staged files or remotes, and nothing had been pushed. Commits and the origin remote were added afterward. Existing databases and any external Git history were not deleted or modified.
 
 `COMMIT-FILES.txt` lists all **81** candidate source/documentation/configuration files. All listed files are currently untracked and should be reviewed and included in the initial commit. It includes frontend/backend source, npm/NuGet lockfiles, tests, public configuration, scripts, API docs, this report and AI-JOURNAL. Generated files and local data are excluded. The final Git dry run succeeded, matched the manifest, and left the index empty.
 

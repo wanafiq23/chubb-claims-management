@@ -32,7 +32,7 @@ dotnet restore Chubb.sln --locked-mode
 if errorlevel 1 goto failed
 
 echo Starting Kafka and waiting for it to become healthy...
-docker compose up -d --wait --wait-timeout 120 kafka
+call :start_kafka
 if errorlevel 1 goto failed
 docker compose up -d --no-deps kafka-init
 if errorlevel 1 goto failed
@@ -84,6 +84,20 @@ for /l %%n in (1,1,90) do (
     powershell.exe -NoProfile -NonInteractive -Command "Start-Sleep -Seconds 2"
 )
 echo Timed out waiting for %~1. Check the service window for errors.
+exit /b 1
+
+:start_kafka
+docker compose up -d --wait --wait-timeout 180 kafka
+if not errorlevel 1 exit /b 0
+docker compose logs --no-color --tail 200 kafka 2>&1 | findstr /I /C:"UnknownHostException: kafka" >nul
+if errorlevel 1 (
+    docker compose logs --no-color --tail 50 kafka
+    exit /b 1
+)
+echo Kafka could not resolve its hostname. Recreating its container and keeping the existing data...
+docker compose up -d --force-recreate --wait --wait-timeout 180 kafka
+if not errorlevel 1 exit /b 0
+docker compose logs --no-color --tail 50 kafka
 exit /b 1
 
 :missing_tools
