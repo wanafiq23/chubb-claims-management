@@ -112,6 +112,7 @@ curl.exe --fail http://localhost:4200/health
 
 - Run `dotnet --list-sdks` and `node --version` to check the prerequisites. Restart CMD after installing them.
 - If Docker is unavailable, open Docker Desktop and wait for the engine. This launcher requires Docker and keeps Kafka enabled.
+- If Kafka exits with a hostname-resolution error for `kafka`, recreate its container using the recovery steps below, then rerun `.\start.cmd`.
 - If dependency installation fails, check network/proxy access to NuGet, npm and Docker Hub, then retry. Do not install frontend dependencies with `--ignore-scripts`.
 - If ports 5080, 4200 or 9092 are occupied, stop the previous instance. Existing responding services are reused; their original environment settings remain in effect. Stop a previously Kafka-disabled backend before launching again.
 - For manual demo sign-in, use `ASPNETCORE_ENVIRONMENT=Development` and enable demo authentication as shown above.
@@ -119,6 +120,23 @@ curl.exe --fail http://localhost:4200/health
 - Use the normal full Windows folder path. If an 8.3 path alias or a moved dev-server cache causes Angular injection errors, stop Angular, run `node node_modules/@angular/cli/bin/ng.js cache clean` from `frontend`, then restart from the full path.
 
 For an isolated second instance, use a separate checkout and set `CHUBB_API_PORT`, `CHUBB_FRONTEND_PORT`, `CHUBB_KAFKA_PORT` and a distinct `COMPOSE_PROJECT_NAME` before launching. Defaults are 5080, 4200 and 9092. The launcher and proxy respect these overrides. There are no `-SkipKafka` or `-NoBrowser` launcher switches.
+
+#### Kafka cannot resolve its own hostname
+
+If startup fails, inspect the broker log from the folder containing `compose.yaml`:
+
+```cmd
+docker compose logs --tail 100 kafka
+```
+
+If the log reports that Kafka cannot resolve `kafka` (for example, `UnknownHostException: kafka`), recreate the broker container and wait for it to become healthy:
+
+```cmd
+docker compose up -d --force-recreate --wait --wait-timeout 180 kafka
+.\start.cmd
+```
+
+Recreating the container refreshes its Docker network attachment and reuses the existing `kafka-data` volume. The launcher then ensures the lifecycle topic exists before starting the application. No application-code or SQLite changes are needed for this recovery. Do not run `docker compose down -v`: it deletes the Kafka volume and its stored records. If the recreated broker still fails, inspect its new logs before retrying.
 
 ## Features
 
