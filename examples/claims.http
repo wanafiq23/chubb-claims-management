@@ -1,0 +1,76 @@
+@base = http://localhost:5080
+@claimId = REPLACE_WITH_CLAIM_ID
+@version = REPLACE_WITH_LATEST_CLAIM_VERSION
+@requestId = REPLACE_WITH_INFORMATION_REQUEST_ID
+
+### Submit as Alice. Copy id and version from response.
+POST {{base}}/api/claims
+Authorization: Bearer customer-alice
+Content-Type: application/json
+
+{"type":"Motor","incidentAt":"2026-01-01T00:00:00Z","incidentDetails":"Collision damage","claimedAmount":2500.50}
+
+### My claims
+GET {{base}}/api/claims?page=1&pageSize=20
+Authorization: Bearer customer-alice
+
+### Customer view
+GET {{base}}/api/claims/{{claimId}}
+Authorization: Bearer customer-alice
+
+### Shared queue
+GET {{base}}/api/staff/queue
+Authorization: Bearer staff-demo
+
+### Start review. Refresh version after EVERY write.
+POST {{base}}/api/claims/{{claimId}}/review
+Authorization: Bearer staff-demo
+If-Match: "{{version}}"
+
+### Estimate
+PUT {{base}}/api/claims/{{claimId}}/estimate
+Authorization: Bearer staff-demo
+If-Match: "{{version}}"
+Content-Type: application/json
+
+{"estimatedLiability":1800.25}
+
+### Information request
+POST {{base}}/api/claims/{{claimId}}/information-requests
+Authorization: Bearer staff-demo
+If-Match: "{{version}}"
+Content-Type: application/json
+
+{"question":"Please confirm the incident location."}
+
+### Text reply; optional files use the same multipart request.
+POST {{base}}/api/claims/{{claimId}}/information-requests/{{requestId}}/reply
+Authorization: Bearer customer-alice
+If-Match: "{{version}}"
+Content-Type: multipart/form-data; boundary=chubb-demo-boundary
+
+--chubb-demo-boundary
+Content-Disposition: form-data; name="text"
+
+The incident occurred in Kuala Lumpur.
+--chubb-demo-boundary--
+
+### Approve (requires estimate); Rejected also accepted.
+POST {{base}}/api/claims/{{claimId}}/decision
+Authorization: Bearer staff-demo
+If-Match: "{{version}}"
+Content-Type: application/json
+
+{"decision":"Approved","reason":"Covered damage."}
+
+### Workload
+GET {{base}}/api/staff/workload
+Authorization: Bearer staff-demo
+
+### Manager totals
+GET {{base}}/api/manager/outstanding
+Authorization: Bearer manager-demo
+
+### Drill into missing Property estimates
+GET {{base}}/api/manager/outstanding/claims?type=Property&withoutEstimate=true
+Authorization: Bearer manager-demo
